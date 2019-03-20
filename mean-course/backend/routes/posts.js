@@ -28,8 +28,24 @@ router.post('/', async (req,res)=>{
 router.delete('/:id',async (req,res)=>{
 
     const post=await Post.findByIdAndDelete(req.params.id);
-    if(!post) return res.status(404).send('customer with the given id is not found');  
+    if(!post) return res.status(404).send('post with the given id is not found');  
     //console.log(post);
     res.status(200).send({message:"Post Deleted"});
 })
+
+router.put("/:id",async(req,res)=>{
+
+    const post=new Post({
+        _id:req.body.id,
+        title:req.body.title,
+        content:req.body.content
+    })
+    
+    const result=await Post.findByIdAndUpdate(req.params.id,post,{new:true});
+    if(!result) return res.status(404).send('post with the given id is not found');
+    
+    res.status(200).send({message:"Post Updated"});
+
+});
+
 module.exports=router;
