@@ -2,6 +2,29 @@ const { Post }=require('../models/post');
 const express=require('express');
 const router=express.Router();
 
+const multer=require('multer');
+
+const MIME_TYPE_MAP={
+    'image/png':'png',
+    'image/jpeg':'jpg',
+    'image/jpg':'jpg'
+}
+const storage=multer.diskStorage({
+    destination: (req,file,callback)=>{
+        const isValid=MIME_TYPE_MAP[file.mimetype];
+        let error=new Error("Invalid MIME Type");
+        if(isValid){
+            error=null;
+        }
+        callback(error,"backend/images");
+    },
+    filename: (req,file,callback)=>{
+        const name=file.originalname.toLowerCase().split(' ').join('-');
+        const ext=MIME_TYPE_MAP[file.mimetype];
+        callback(null,name + '-'+Date.now()+'.'+ext);
+    }
+})
+
 router.get('/',async (req,res)=>{
     const posts=await Post.find();
     //console.log(posts);
@@ -18,16 +41,22 @@ router.get('/:id',async (req,res)=>{
     res.status(200).send(post);
 });
 
-router.post('/', async (req,res)=>{
-
+router.post('',multer({storage:storage}).single("image"), async (req,res)=>{
+    const url=req.protocol + '://' +req.get('host');
     const post= new Post( {
         title:req.body.title,
-        content:req.body.content
+        content:req.body.content,
+        imagePath:url+"/images/"+req.file.filename
     })
     const result=await post.save();
     res.status(201).send({
         message:'Post added successfully',
-        postId:result._id
+        post:{
+            id:result._id,
+            title:result.title,
+            content:result.content,
+            imagePath:result.imagePath
+        }
     });
 });
 
