@@ -12,6 +12,12 @@ router.get('/',async (req,res)=>{
     
 });
 
+router.get('/:id',async (req,res)=>{
+    const post=await Post.findById(req.params.id);
+    if(!post) return res.status(404).send('post with the given id is not found');
+    res.status(200).send(post);
+});
+
 router.post('/', async (req,res)=>{
 
     const post= new Post( {
