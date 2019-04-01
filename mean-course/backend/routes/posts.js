@@ -69,17 +69,32 @@ router.delete('/:id',async (req,res)=>{
 })
 
 router.put("/:id",async(req,res)=>{
-
-    const post=new Post({
-        _id:req.body.id,
-        title:req.body.title,
-        content:req.body.content
-    })
-    
+    let imagePath = req.body.imagePath;
+    if (req.file) {
+      const url = req.protocol + "://" + req.get("host");
+      imagePath = url + "/images/" + req.file.filename
+    }
+    const post = new Post({
+      _id:req.params.id,
+      title: req.body.title,
+      content: req.body.content,
+      imagePath: imagePath
+    });
+    console.log(post.title)
+    console.log(post);
     const result=await Post.findByIdAndUpdate(req.params.id,post,{new:true});
+    console.log(result);
     if(!result) return res.status(404).send('post with the given id is not found');
-    
-    res.status(200).send({message:"Post Updated"});
+    res.status(200).send(
+        {
+            message:"Post Updated",
+            post:{
+                id:result._id,
+                title:result.title,
+                content:result.content,
+                imagePath:result.imagePath
+            }
+        });
 
 });
 
