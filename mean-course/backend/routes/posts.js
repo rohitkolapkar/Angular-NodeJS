@@ -25,14 +25,31 @@ const storage=multer.diskStorage({
     }
 })
 
-router.get('/',async (req,res)=>{
-    const posts=await Post.find();
-    //console.log(posts);
-    res.status(200).send({
-        message:'Posts fetched successfully',
-        posts:posts
-    });
-    
+router.get('/',(req,res)=>{
+    const pageSize=+req.query.pagesize;
+    const currentPage=+req.query.page;
+    const postQuery=Post.find();
+    let fetchedPosts;
+    if(pageSize&&currentPage){
+       postQuery
+        .skip(pageSize * (currentPage-1))
+        .limit(pageSize);
+    }
+    postQuery
+    .then(posts=>{
+        fetchedPosts=posts;
+        return Post.count();
+    })
+    .then(count=>{
+        res.status(200).send({
+            message:'Posts fetched successfully',
+            posts:fetchedPosts,
+            maxPosts:count
+        });
+        
+    })
+
+
 });
 
 router.get('/:id',async (req,res)=>{
